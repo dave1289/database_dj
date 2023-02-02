@@ -47,7 +47,8 @@ def show_all_playlists():
 def show_playlist(playlist_id):
     """Show detail on specific playlist."""
 
-    # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
+    playlist = Playlist.query.get_or_404(playlist_id)
+    return render_template('playlist.html', playlist=playlist)
 
 
 @app.route("/playlists/add", methods=["GET", "POST"])
@@ -67,7 +68,7 @@ def add_playlist():
         db.session.commit()
         return redirect('/playlists')
     else:
-        return render_template('/new_playlist', form=form)
+        return render_template('new_playlist.html', form=form)
 
 
 
@@ -86,6 +87,8 @@ def show_all_songs():
 @app.route("/songs/<int:song_id>")
 def show_song(song_id):
     """return a specific song"""
+    song = Song.query.get_or_404(song_id)
+    return render_template('song.html', song=song)
 
     
 
@@ -112,26 +115,34 @@ def add_song():
 
 @app.route("/playlists/<int:playlist_id>/add-song", methods=["GET", "POST"])
 def add_song_to_playlist(playlist_id):
-    """Add a playlist and redirect to list."""
 
-    # BONUS - ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
+  playlist = Playlist.query.get_or_404(playlist_id)
+  form = NewSongForPlaylistForm()
 
-    # THE SOLUTION TO THIS IS IN A HINT IN THE ASSESSMENT INSTRUCTIONS
+  # Restrict form to songs not already on this playlist
 
-    playlist = Playlist.query.get_or_404(playlist_id)
-    form = NewSongForPlaylistForm()
+  curr_on_playlist = [s.id for s in playlist.songs]
+  form.song.choices = (db.session.query(Song.id, Song.title)
+                      .filter(Song.id.notin_(curr_on_playlist))
+                      .all())
 
-    # Restrict form to songs not already on this playlist
+  if form.validate_on_submit():
 
-    curr_on_playlist = ...
-    form.song.choices = ...
+      # This is one way you could do this ...
+      playlist_song = PlaylistSong(song_id=form.song.data,
+                                  playlist_id=playlist_id)
+      db.session.add(playlist_song)
 
-    if form.validate_on_submit():
+      # Here's another way you could that is slightly more ORM-ish:
+      #
+      # song = Song.query.get(form.song.data)
+      # playlist.songs.append(song)
 
-          # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
+      # Either way, you have to commit:
+      db.session.commit()
 
-          return redirect(f"/playlists/{playlist_id}")
+      return redirect(f"/playlists/{playlist_id}")
 
-    return render_template("add_song_to_playlist.html",
-                             playlist=playlist,
-                             form=form)
+  return render_template("add_song_to_playlist.html",
+                         playlist=playlist,
+                         form=form)
