@@ -9,9 +9,15 @@
   {% endif %}
 </div>
 
-
-<div class="text-danger">
-  SHOW ALL OF THE SONGS IN THIS PLAYLIST HERE
+<div class="container">
+{% for song in songs %}
+  <div class="card my-4">
+    <div class="card-title">
+      <b>{{song.artist}}</b>
+    </div>
+    <div class="card-body">{{song.title}}</div>
+  </div>
+{% endfor %}
 </div>
 
 <p>
