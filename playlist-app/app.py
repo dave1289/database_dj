@@ -9,6 +9,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///playlist-app'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 
+app.app_context().push()
+
 connect_db(app)
 db.create_all()
 
